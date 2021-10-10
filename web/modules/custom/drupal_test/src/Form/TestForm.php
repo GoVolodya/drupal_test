@@ -3,7 +3,6 @@
 namespace Drupal\drupal_test\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -19,7 +18,7 @@ class TestForm extends FormBase
 
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('config.factory'),
+      $container->get('config.factory')
     );
   }
 
@@ -30,7 +29,6 @@ class TestForm extends FormBase
 
   public function buildForm(array $form, FormStateInterface $form_state)
 {
-
   $form['text'] = [
     '#type' => 'textfield',
     '#title' => $this->t('Title'),

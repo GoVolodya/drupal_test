@@ -4,6 +4,7 @@ use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\node\Entity\Node;
+use Drupal\user\Entity\User;
 
 function update(array &$form, FormStateInterface $form_state)
 {
@@ -28,16 +29,47 @@ function delete(array &$form, FormStateInterface $form_state)
 }
 
 function drupal_test_node_view(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display, $view_mode) {
+  $build['#cache']['max-age'] = 0;
+  \Drupal::service('page_cache_kill_switch')->trigger();
+  $daytime = 86400;
+  $user = \Drupal::currentUser();
   /** @var \Drupal\Core\Database\Connection $connection */
   $connection = \Drupal::service('database');
+  $all_views = $connection->query('SELECT * FROM `drupal_test` WHERE nid = '.$entity->id())->fetchAll();
+  $total_views = count($all_views);
+
+  $last_view = $connection->query('SELECT * FROM drupal_test WHERE nid = '.$entity->id().' ORDER BY timestamp DESC LIMIT 1')->fetchObject();
+  $last_day = $last_view->timestamp - $daytime;
+  $all_views_day = $connection->query('SELECT * FROM drupal_test WHERE nid = '.$entity->id().' AND timestamp >= '.$last_day)->fetchAll();
+  $day_views_count = count($all_views_day);
+
   $connection->insert('drupal_test')->fields(array(
-    'nid' => 1,
-    'uid' => 1,
-    'totalcount' => 1,
-    'daycount' => 1,
+    'nid' => $entity->id(),
+    'uid' => $user->id(),
+    'totalcount' => $total_views,
+    'daycount' => $day_views_count,
     'timestamp' => \Drupal::time()->getRequestTime()
   ))->execute();
-//  $build['body'][0]['stats'] = [
-//    '#markup' => '<div class="asd">qweqwe</div>'
-//  ];
+
+  if($last_view->uid){
+    $account = User::load($last_view->uid);
+    $name = $account->getAccountName();
+    if(!$name){
+      $name = 'Anonymous';
+    }
+  }else{
+    $name = 'Anonymous';
+  }
+
+  $date = date('l jS \of F Y h:i:s A', $last_view->timestamp);
+
+  if($day_views_count == 0 || $total_views == 0){
+    $day_views_count = 'You are the first one';
+    $name = 'You';
+    $date = date('l jS \of F Y h:i:s A', \Drupal::time()->getRequestTime());
+  }
+
+  $build['title'][0]['stats'] = [
+    '#markup' => '<div class="asd">Number of views: '.$day_views_count.' today / '.$total_views.' total</div><div class="asd2">Last time viewed by: '.$name.' on '.$date.'</div>'
+  ];
 }

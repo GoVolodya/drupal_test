@@ -1,0 +1,20 @@
+uuid: a387cee4-e004-4c50-a554-08c4edeefdb3
+langcode: en
+status: true
+dependencies:
+  module:
+    - drupal_test
+  theme:
+    - bartik
+id: quoteblock
+theme: bartik
+region: content
+weight: -7
+provider: null
+plugin: quote_block
+settings:
+  id: quote_block
+  label: 'Quote block'
+  provider: drupal_test
+  label_display: visible
+visibility: {  }

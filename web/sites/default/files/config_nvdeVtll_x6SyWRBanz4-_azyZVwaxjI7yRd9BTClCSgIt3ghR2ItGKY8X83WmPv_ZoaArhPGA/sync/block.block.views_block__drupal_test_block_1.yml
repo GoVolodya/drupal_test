@@ -1,0 +1,32 @@
+uuid: 54fb3652-11d5-49da-9989-3d900adf2621
+langcode: en
+status: true
+dependencies:
+  config:
+    - views.view.drupal_test
+  module:
+    - node
+    - views
+  theme:
+    - bartik
+id: views_block__drupal_test_block_1
+theme: bartik
+region: content
+weight: -1
+provider: null
+plugin: 'views_block:drupal_test-block_1'
+settings:
+  id: 'views_block:drupal_test-block_1'
+  label: ''
+  provider: views
+  label_display: visible
+  views_label: ''
+  items_per_page: none
+visibility:
+  node_type:
+    id: node_type
+    bundles:
+      article: article
+    negate: false
+    context_mapping:
+      node: '@node.node_route_context:node'

@@ -2,7 +2,7 @@ drupal_test.my_page:
   path: '/custom-site-settings'
   defaults:
     _form: '\Drupal\drupal_test\Form\TestForm'
-    _title: 'My first page'
+    _title: 'Site name'
   requirements:
     _permission: 'view form'
 

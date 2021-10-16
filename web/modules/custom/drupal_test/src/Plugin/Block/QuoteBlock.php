@@ -9,8 +9,11 @@ namespace Drupal\drupal_test\Plugin\Block;
 
 use Drupal\Core\Block\Annotation\Block;
 use Drupal\Core\Block\BlockBase;
+use GuzzleHttp\Client;
 
 /**
+ * This block is for random quote.
+ *
  * @Block(
  *   id = "quote_block",
  *   admin_label = @Translation("Quote block"),
@@ -18,48 +21,36 @@ use Drupal\Core\Block\BlockBase;
  */
 class QuoteBlock extends BlockBase {
 
-  public function randomQuote(){
-    $curl = curl_init();
-
-    curl_setopt_array($curl, [
-      CURLOPT_URL => "https://zenquotes.io/api/random",
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_FOLLOWLOCATION => true,
-      CURLOPT_ENCODING => "",
-      CURLOPT_MAXREDIRS => 10,
-      CURLOPT_TIMEOUT => 30,
-      CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-      CURLOPT_CUSTOMREQUEST => "GET",
-      CURLOPT_HTTPHEADER => [],
-    ]);
-
-    $response = curl_exec($curl);
-    $err = curl_error($curl);
-
-    curl_close($curl);
-
-    if ($err) {
-      return "cURL Error #:" . $err;
-    } else {
-      $response = json_decode($response);
-      $a = $response[0];
-      return $a->h;
-    }
+  /**
+   * Makes a request to quote api.
+   *
+   * @return mixed
+   *   The quote.
+   * @throws \GuzzleHttp\Exception\GuzzleException
+   */
+  public function randomQuote() {
+    $client = new Client();
+    $response = $client->get('https://zenquotes.io/api/random');
+    $decoded_response = json_decode($response->getBody());
+    $data = $decoded_response[0];
+    return $data->h;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   public function getCacheMaxAge() {
     return 0;
   }
 
   /**
-   * {@inheritdoc}
+   * {@inheritDoc}
    */
   public function build() {
-    $block = [
+    return [
       '#type' => 'markup',
       '#markup' => $this->randomQuote()
     ];
-    return $block;
   }
 
 }

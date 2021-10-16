@@ -1,20 +1,35 @@
 <?php
 
+/**
+ * @file
+ * This file contains functions and hooks.
+ */
+
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\node\Entity\Node;
 use Drupal\user\Entity\User;
 
-function update(array &$form, FormStateInterface $form_state)
-{
+/**
+ * This is form submit handler for update.
+ *
+ * @param array $form
+ *   The form.
+ * @param FormStateInterface $form_state
+ *   The form values.
+ * @throws \Drupal\Core\Entity\EntityStorageException
+ */
+function update(array &$form, FormStateInterface $form_state) {
   $node = Node::load($form_state->getValue('title'));
-  if($form_state->getValue('status') === 'published'){
+
+  if ($form_state->getValue('status') === 'published') {
     $node->setPublished();
   } else {
     $node->setUnpublished();
   }
-  if($form_state->getValue('sticky') === 'sticky'){
+
+  if ($form_state->getValue('sticky') === 'sticky') {
     $node->setSticky(true);
   } else {
     $node->setSticky(false);
@@ -22,12 +37,23 @@ function update(array &$form, FormStateInterface $form_state)
   $node->save();
 }
 
-function delete(array &$form, FormStateInterface $form_state)
-{
+/**
+ * This is form submit handler for delete.
+ *
+ * @param array $form
+ *   The form.
+ * @param FormStateInterface $form_state
+ *   The form values.
+ * @throws \Drupal\Core\Entity\EntityStorageException
+ */
+function delete(array &$form, FormStateInterface $form_state) {
   $node = Node::load($form_state->getValue('title'));
   $node->delete();
 }
 
+/**
+ * Implements hook_node_view().
+ */
 function drupal_test_node_view(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display, $view_mode) {
   $build['#cache']['max-age'] = 0;
   \Drupal::service('page_cache_kill_switch')->trigger();
@@ -37,7 +63,6 @@ function drupal_test_node_view(array &$build, EntityInterface $entity, EntityVie
   $connection = \Drupal::service('database');
   $all_views = $connection->query('SELECT * FROM `drupal_test` WHERE nid = '.$entity->id())->fetchAll();
   $total_views = count($all_views);
-
   $last_view = $connection->query('SELECT * FROM drupal_test WHERE nid = '.$entity->id().' ORDER BY timestamp DESC LIMIT 1')->fetchObject();
   $last_day = $last_view->timestamp - $daytime;
   $all_views_day = $connection->query('SELECT * FROM drupal_test WHERE nid = '.$entity->id().' AND timestamp >= '.$last_day)->fetchAll();
@@ -51,25 +76,25 @@ function drupal_test_node_view(array &$build, EntityInterface $entity, EntityVie
     'timestamp' => \Drupal::time()->getRequestTime()
   ))->execute();
 
-  if($last_view->uid){
+  if ($last_view->uid) {
     $account = User::load($last_view->uid);
     $name = $account->getAccountName();
-    if(!$name){
+    if (!$name) {
       $name = 'Anonymous';
     }
-  }else{
+  } else {
     $name = 'Anonymous';
   }
 
   $date = date('l jS \of F Y h:i:s A', $last_view->timestamp);
 
-  if($day_views_count == 0 || $total_views == 0){
+  if ($day_views_count == 0 || $total_views == 0) {
     $day_views_count = 'You are the first one';
     $name = 'You';
     $date = date('l jS \of F Y h:i:s A', \Drupal::time()->getRequestTime());
   }
 
   $build['title'][0]['stats'] = [
-    '#markup' => '<div class="asd">Number of views: '.$day_views_count.' today / '.$total_views.' total</div><div class="asd2">Last time viewed by: '.$name.' on '.$date.'</div>'
+    '#markup' => '<div>Number of views: '.$day_views_count.' today / '.$total_views.' total</div><div>Last time viewed by: '.$name.' on '.$date.'</div>'
   ];
 }
